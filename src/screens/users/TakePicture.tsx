@@ -27,9 +27,10 @@ class TakePicture extends PureComponent<MyProps, any> {
         const data = await this.camera.takePictureAsync(options);
         //console.log(data.uri);
         console.log("Enter here " + data.uri);
-        changeUri(data.uri);
+        changeUri(data.uri, true);
         //this.props.route.params.onTake(data.uri);
-        this.props.navigation.navigate("RegisterUsers");
+        this.props.navigation.pop();
+        //this.props.navigation.navigate("RegisterUsers");
       }
   }
   render() {

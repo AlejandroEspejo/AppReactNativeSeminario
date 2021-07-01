@@ -6,6 +6,7 @@ import {Appbar} from "react-native-paper"
 import ListUsers from "./ListUsers";
 import RegisterUsers from "./RegisterUsers";
 import DetailUsers from "./DetailUsers";
+import UpdateUser from "./UpdateUser";
 import TakePicture from "./TakePicture";
 import AppContext from "../../context/AppContext";
 const MORE_ICON = Platform.OS === 'ios' ? 'dots-horizontal' : 'dots-vertical';
@@ -53,6 +54,15 @@ class Clients extends Component<any, any> {
              </Appbar.Header>}
             )}/>
             <Stack.Screen name="TakePicture" component={TakePicture}/>
+            <Stack.Screen name="UpdateUser" component={UpdateUser} options={() => (
+              {header: (navigate) => <Appbar.Header>
+                <Appbar.BackAction onPress={() => {
+                  navigate.navigation.pop();
+                  //this.props.navigation.pop();
+                }} />
+                <Appbar.Content title="Datos de Usuario" subtitle={'Sistema de roles'} />
+             </Appbar.Header>}
+            )}/>
           </Stack.Navigator>
         </NavigationContainer>
     )

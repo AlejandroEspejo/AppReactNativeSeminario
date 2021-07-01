@@ -5,6 +5,18 @@ export interface ActionType {
 }
 export default (state: any, action: ActionType) => {
     switch (action.type) {
+        case Types.LOADUSERS: {
+            return {
+                ...state,
+                listusers: action.payload
+            }
+        }
+        case Types.PHOTOLOADAVATAR: {
+            return {
+                ...state,
+                isLoadAvatar: action.payload
+            }
+        }
         case Types.CHANGEITEMUSER: {
             return {
                 ...state,

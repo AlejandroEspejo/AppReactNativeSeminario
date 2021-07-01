@@ -4,6 +4,7 @@ import {TextInput, Button, Avatar} from "react-native-paper";
 import {StackNavigationProp} from "@react-navigation/stack";
 import axios, { AxiosResponse } from "axios";
 import AppContext from "../../context/AppContext";
+import { Alert } from "react-native";
 interface ItemUser{
     username?: string,
     email?: string,
@@ -18,17 +19,10 @@ interface Mystate {
     isload: boolean,
     pathImg?: string
 }
-interface IParams {
-    reloadContext: Function
-}
-interface IRoute {
-    params: IParams
-}
 interface MyProps {
-    navigation: StackNavigationProp<any, any>;
-    route: IRoute
+    navigation: StackNavigationProp<any, any>
 }
-class RegisterUsers extends Component<MyProps, Mystate> {
+class UpdateUser extends Component<MyProps, Mystate> {
     static contextType = AppContext;
     constructor(props: any) {
         super(props);
@@ -37,25 +31,49 @@ class RegisterUsers extends Component<MyProps, Mystate> {
             username: "", email: "", password: "", repassword:""
         }
     }
+    componentDidMount() {
+        var {changeUri} = this.context;
+       this.setState(
+            {
+                username: this.context.itemuser.username,
+                email: this.context.itemuser.email,
+                
+            }
+        );
+        changeUri("http://192.168.0.106:8000" + this.context.itemuser.uriavatar, false);
+    }
     async checkandSendData() {
+        
         var navigation:StackNavigationProp<any, any> = this.props.navigation;
-        console.log(this.state);
         if (this.state.password != this.state.repassword) {
             return;
         }
-        var result: any = await axios.post<ItemUser, AxiosResponse<any>>("http://192.168.0.106:8000/api/users", this.state)
+        var dataSend = {};
+        if (this.state.password == "") {
+            dataSend = {
+                username: this.state.username,
+                email: this.state.email
+            };
+        } else {
+            dataSend = {
+                username: this.state.username,
+                email: this.state.email,
+                password: this.state.password
+            };
+        }
+        
+        var result: any = await axios.put<ItemUser, AxiosResponse<any>>("http://192.168.0.106:8000/api/users/" + this.context.itemuser._id, dataSend)
         .then((response) => {
             return response.data;
         });
-        console.log(result);
-        if (this.state.isload) {
+        if (this.context.isLoadAvatar) {
             var data = new FormData();
             data.append("avatar", {
             name: "avatar.jpg", 
-            uri: this.state.pathImg, 
+            uri: this.context.uriphoto, 
             type: "image/jpg"});
-            console.log("http://192.168.0.106:8000/api/uploadportrait/" + result.serverResponse._id)
-            fetch("http://192.168.0.106:8000/api/uploadportrait/" + result.serverResponse._id, {
+            console.log("http://192.168.0.106:8000/api/uploadportrait/" + this.context.itemuser._id)
+            fetch("http://192.168.0.106:8000/api/uploadportrait/" + this.context.itemuser._id, {
                 method: "POST",
                 headers: {
                     "Content-Type": "multipart/form-data"
@@ -63,28 +81,13 @@ class RegisterUsers extends Component<MyProps, Mystate> {
                 body: data
             }).then((result) => {
                 result.json();
-            }).then((result) => {
+            }).then((result: any) => {
                 console.log(result);
+                //Alert.alert("Message", result.serverResponse);
                 navigation.pop();
             });
-            var {loadMainListUsers} = this.context;
-            await loadMainListUsers();
-            return;
-            /*var result_img = await axios.post("http://192.168.0.106:8000/api/uploadportrait/" + result.serverResponse._id, data,{
-                headers: {
-                    "Content-Type": "multipart/form-data"
-                }
-            }).then((response) => {
-                return response.data;
-            });
-            navigation.push("list");
-            //console.log(result_img);
-            */
-        } 
-        var {loadMainListUsers} = this.context;
-        await loadMainListUsers();
-        this.props.route.params.reloadContext();
-        navigation.navigate("list");
+        }
+        
     }
     onTakePicture(path: string) {
         //console.log(path);
@@ -106,6 +109,7 @@ class RegisterUsers extends Component<MyProps, Mystate> {
         <View style= {styles.container}>
             <TextInput style={styles.txtStyles}
             label="User Name"
+            value={this.state.username}
             onChangeText={text => {  
                 this.setState({
                     username: text
@@ -113,6 +117,7 @@ class RegisterUsers extends Component<MyProps, Mystate> {
             }}/>
             <TextInput style={styles.txtStyles}
             label="Email"
+            value={this.state.email}
             onChangeText={text => {   
                 this.setState({
                     email: text
@@ -120,6 +125,7 @@ class RegisterUsers extends Component<MyProps, Mystate> {
             }}/>
             <TextInput style={styles.txtStyles}
             label="Password"
+            value={this.state.password}
             onChangeText={text => {   
                 this.setState({
                     password: text
@@ -127,6 +133,7 @@ class RegisterUsers extends Component<MyProps, Mystate> {
             }}/>
             <TextInput style={styles.txtStyles}
             label="Re. Password"
+            value={this.state.repassword}
             onChangeText={text => {   
                 this.setState({
                     repassword: text
@@ -146,7 +153,7 @@ class RegisterUsers extends Component<MyProps, Mystate> {
             <Button style={styles.txtStyles} icon="gnome" mode="contained" onPress={() => {
                 this.checkandSendData();
             }}>
-                Create
+                Actualizar
             </Button>
         </View>
     )
@@ -164,4 +171,4 @@ const styles = StyleSheet.create({
     }
 }   
 );
-export default RegisterUsers;
+export default UpdateUser;
