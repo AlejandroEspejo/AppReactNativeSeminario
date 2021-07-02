@@ -6,13 +6,12 @@ import Order from "./Order";
 import Reports from "./Reports";
 import Icons from "react-native-vector-icons/AntDesign";
 import MyColors from "../color/MyColors"
-import DataState from "../context/AppState";
+
 const Tab = createBottomTabNavigator();
 class MainApp extends Component {
   render() {
     return (
-      <DataState>
-        <NavigationContainer>
+        <NavigationContainer independent={true}>
           <Tab.Navigator
           screenOptions={({route}) => ({
             
@@ -53,7 +52,7 @@ class MainApp extends Component {
             <Tab.Screen name="Reportes" component={Reports} />
           </Tab.Navigator>
         </NavigationContainer>
-      </DataState>)
+      )
   }
 }
 export default MainApp;

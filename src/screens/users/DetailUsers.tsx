@@ -71,7 +71,7 @@ class DetailUsers extends Component<MyProps, MyState> {
         <View style={styles.container}>
             <View>
               <Card>
-                <Card.Cover source={{ uri: 'http://192.168.0.106:8000' + itemuser.uriavatar }} />
+                <Card.Cover source={{ uri: itemuser.uriavatar }} />
                   <Card.Content>
                     <Title>{itemuser.username}</Title>
                     <Paragraph>El nombre de usuario es{itemuser.email} </Paragraph>

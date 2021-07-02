@@ -5,53 +5,29 @@ import {Types} from "./ContantTypes";
 import { AsyncStorage } from "react-native";
 import {ItemUser} from "../screens/users/ListUsers"
 import axios from "axios";
+import {IGoogleUser} from "../screens/Login";
 // Es el conjunto de datos
 interface ServerResponse {
     serverResponse:Array<ItemUser>
-  }
+}
+interface ServerResponseLogin {
+    serverResponse: ItemUser | UserCreateError
+}
+interface UserCreateError {
+    driver: Boolean,
+    name: string,
+    index: number,
+    code: number,
+}
 const DataState = (props: any) => {
-<<<<<<< HEAD
-  const initialState = {
-    searchbarVisible: false,
-    uriphoto: '',
-    itemuser: {},
-    sesionToken: null,
-  };
-  const [state, dispatch] = useReducer(AppReducer, initialState);
-  const changeSearchBarVisible = (value: Boolean) => {
-    dispatch({type: Types.SEARCHBARVISIBLE, payload: value});
-  };
-  const changeUri = (value: string) => {
-    dispatch({type: Types.CHANGEURI, payload: value});
-  };
-
-  const setToken = (value: string) => {
-    dispatch({type: Types.SETTOKEN, payload: value});
-  };
-
-  return (
-    <AppContext.Provider
-      value={{
-        searchbarVisible: state.searchbarVisible,
-        changeSearchBarVisible,
-        uriphoto: state.uriphoto,
-        changeUri,
-        dispatch,
-        setToken,
-        itemuser: state.itemuser,
-        token: state.sesionToken,
-      }}>
-      {props.children}
-    </AppContext.Provider>
-  );
-};
-=======
     const initialState = {
         searchbarVisible: false,
         uriphoto: "",
         itemuser: {},
         isLoadAvatar: false,
-        listusers: []
+        listusers: [],
+        serverErrorMessages: "",
+        userAuth: {}
     }
     const [state, dispatch] = useReducer(AppReducer, initialState);
     const changeSearchBarVisible = (value: Boolean) => {
@@ -61,15 +37,46 @@ const DataState = (props: any) => {
         dispatch({type: Types.PHOTOLOADAVATAR, payload: isInThePhone});
         dispatch({type: Types.CHANGEURI, payload: value});
     }
-
+    const loginGoogle = async (user: IGoogleUser, callBack: Function) => {
+       var dataresult: any = await axios.post<ServerResponseLogin>("http://192.168.0.106:8000/api/users", {username: user.name, email: user.email, password: user.id});
+       var result: any = dataresult.data;
+       if (result.serverResponse.code != null) {
+        //Login user 
+        var loginr: any = await axios.post("http://192.168.0.106:8000/api/login", {email: user.email, password: user.id});
+        if (loginr.data.serverResponse == "Credenciales incorrectas") {
+            dispatch({type: Types.SETSERVERERRORMSN, payload: loginr.data.serverResponse});
+            callBack(false);
+        } else {
+            dispatch({type: Types.SETAUTHUSER, payload: loginr.data.serverResponse});
+            callBack(true);
+        }
+       }
+       if (result.serverResponse._id != null) {
+        //http://localhost:8000/api/users/60df667affede700328cdc48
+        await axios.put("http://192.168.0.106:8000/api/users/" + result.serverResponse._id, {uriavatar: user.photo});
+        var loginr: any = await axios.post("http://192.168.0.106:8000/api/login", {email: user.email, password: user.id});
+        if (loginr.data.serverResponse == "Credenciales incorrectas") {
+            dispatch({type: Types.SETSERVERERRORMSN, payload: loginr.data.serverResponse});
+            callBack(false);
+        } else {
+            dispatch({type: Types.SETAUTHUSER, payload: loginr.data.serverResponse});
+            callBack(true);
+        }
+       }
+    }
     const loadMainListUsers = async() => {
-        var token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjYwYzFhMzA2ZDdkNDEyMDA2M2VkZmU1ZCIsImVtYWlsIjoiZGl0bWFyQGdtYWlsLmNvbSIsImlhdCI6MTYyNDU2NjE4Nn0.oygPF1mZUifNyZfP3MX1i-T470c6V91wjtcvdwn-RWI"
+        var token = state.userAuth.token;
         var result: Array<ItemUser> = await axios.get<ServerResponse>("http://192.168.0.106:8000/api/users", {
             headers: {
                 "Authorization": token
             }
         }).then((item) => {
           return item.data.serverResponse
+        });
+        result.map((item) => {
+            if(item.uriavatar != null && item.uriavatar.match(/\/api\/getportrait\/\w+/g) != null) {
+                item.uriavatar = "http://192.168.0.106:8000" + item.uriavatar
+            }
         });
         dispatch({type: Types.LOADUSERS, payload: result});
     }
@@ -87,11 +94,13 @@ const DataState = (props: any) => {
         dispatch,
         loadMainListUsers,
         setListusers,
+        loginGoogle,
+        userAuth: state.userAuth,
+        serverErrorMessages: state.serverErrorMessages,
         listusers: state.listusers,
         itemuser: state.itemuser}}>
             {props.children}
         </AppContext.Provider>
     )
 }
->>>>>>> 4745cd6cd091c580baa85f78b7611a9a72ed46e9
 export default DataState;
