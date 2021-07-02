@@ -6,6 +6,7 @@ import { Avatar, Button, Card, Title, Paragraph , Chip, Searchbar, List} from 'r
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view'
 import axios from "axios";
 import {Types} from "../../context/ContantTypes"; 
+import { StackNavigationProp } from "@react-navigation/stack";
 interface MyState {
   systemroles: Array<IRoles>
 }
@@ -15,7 +16,10 @@ interface ServerResponse {
 interface ServerResponsePutRoles {
   serverResponse: ItemUser
 }
-class DetailUsers extends Component<any, MyState> {
+interface MyProps {
+  navigation: StackNavigationProp<any, any>
+}
+class DetailUsers extends Component<MyProps, MyState> {
   static contextType = AppContext;
   constructor(props: any) {
     super(props);
@@ -43,7 +47,7 @@ class DetailUsers extends Component<any, MyState> {
     return (<View style={styles.chipContainer}>
         {
           itemuser.roles.map(item => {
-            return <Chip icon="information" onPress={async () => {
+            return <Chip key={item._id} icon="information" onPress={async () => {
               var result: ItemUser = await axios.put<ServerResponsePutRoles>("http://192.168.0.106:8000/api/removerol/" + this.context.itemuser._id, {idRol: item._id}).then((item) => {
                 return item.data.serverResponse;
               });
@@ -53,22 +57,13 @@ class DetailUsers extends Component<any, MyState> {
         }
     </View>);
   }
-  listItem(item: IRoles) {
+  async onClickListItme(item: IRoles) {
     const {dispatch} = this.context;
-    
-    //var item : ItemUser = params.item
-      return <List.Item
-      title={item.name}
-      description={item.method}
-      onPress={async () => {
-        var result: ItemUser = await axios.put<ServerResponsePutRoles>("http://192.168.0.106:8000/api/addrol/" + this.context.itemuser._id, {idRol: item._id}).then((item) => {
+    var result: ItemUser = await axios.put<ServerResponsePutRoles>("http://192.168.0.106:8000/api/addrol/" + this.context.itemuser._id, {idRol: item._id}).then((item) => {
           return item.data.serverResponse;
         });
           dispatch({type: Types.CHANGEITEMUSER, payload: result});
-      }}
-      left={props => <List.Icon {...props} icon="incognito" />}
-      />
-}
+  }
   render() {
     var itemuser: ItemUser = this.context.itemuser;
     return (
@@ -83,12 +78,15 @@ class DetailUsers extends Component<any, MyState> {
                   </Card.Content>
                   <Card.Actions>
                     <Button icon="account-edit" onPress={() => {
-
+                      this.props.navigation.push("UpdateUser");
                     }}>Edit</Button>
                     <Button icon="delete" onPress={() => {
                       Alert.alert("Borrar usuario", "Desea Borrar Al usuario " + itemuser.username, [
-                        {text: "Confirmar", onPress: () => {
-
+                        {text: "Confirmar", onPress: async() => {
+                          var result = await axios.delete("http://192.168.0.106:8000/api/users/" + this.context.itemuser._id);
+                          var {loadMainListUsers} = this.context;
+                          loadMainListUsers();
+                          this.props.navigation.pop();
                         }},
                         {text: "Cancelar", onPress: () => {
 
@@ -122,14 +120,17 @@ class DetailUsers extends Component<any, MyState> {
                     />
                     </View>
                     <View>
-                    <FlatList
-                        data={this.state.systemroles}
-                        renderItem={({item}) => (
-                          this.listItem(item)
-                        )}
-                        keyExtractor={(item) => item._id}
-                      />
-                      
+                        {this.state.systemroles.map(item => {
+                          return <List.Item
+                          key={item._id}
+                          title={item.name}
+                          description={item.method}
+                          onPress={() => {
+                            this.onClickListItme(item);
+                          }}
+                          left={props => <List.Icon {...props} icon="folder" />}
+                        />
+                        })}
                     </View>
                 </Card.Content>
                   

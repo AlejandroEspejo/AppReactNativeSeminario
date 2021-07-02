@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "176320771168",
+    "project_id": "seminario-1e3b7",
+    "storage_bucket": "seminario-1e3b7.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:176320771168:android:edfaf155c4289d920d3f05",
+        "android_client_info": {
+          "package_name": "com.projectseminario"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "176320771168-qv1cqsqg81bmugip1jdn7ccf4euadpop.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.projectseminario",
+            "certificate_hash": "637c0a4b8b08fc383eab9125b4f5494bc52eda33"
+          }
+        },
+        {
+          "client_id": "176320771168-71ggh5ibho0baqdgq0h53u9hs21q64ss.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDcWfchRBVmPpCAnNLvzDMwFAtDUDuit0Y"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "176320771168-71ggh5ibho0baqdgq0h53u9hs21q64ss.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,10 +1,11 @@
 import React, { Component } from "react";
-import {View, Text, Platform, FlatList, StyleSheet} from "react-native"; 
+import {View, Text, Platform, FlatList, StyleSheet, AppState} from "react-native"; 
 import { StackNavigationProp } from '@react-navigation/stack';
 import axios from "axios";
 import {Appbar, List, Avatar, FAB, Searchbar} from "react-native-paper";
 import AppContext from "../../context/AppContext"
 import {Types} from "../../context/ContantTypes"; 
+import { AppStateStatus } from "react-native";
 export interface IRoles {
   _id: string,
   name: string,
@@ -26,7 +27,8 @@ interface ServerResponse {
 interface MyState {
   dataUsers: Array<ItemUser>,
   completeList: Array<ItemUser>,
-  searchKey: string
+  searchKey: string,
+  appState: AppStateStatus
 }
 interface ItemData {
   item: ItemUser
@@ -42,18 +44,44 @@ class ListUsers extends Component<MyProps, MyState> {
     this.state = {
       dataUsers: [],
       searchKey : "",
-      completeList: []
+      completeList: [],
+      appState: AppState.currentState
     }
   }
   async componentDidMount() {
-    console.log(this.context);
+    /*console.log(this.context);
     var result: Array<ItemUser> = await axios.get<ServerResponse>("http://192.168.0.106:8000/api/users").then((item) => {
       return item.data.serverResponse
+    });*/
+    var {loadMainListUsers} = this.context;
+    await loadMainListUsers();
+    var {listusers} = this.context;
+    this.setState({ 
+      dataUsers: listusers,
+      completeList: listusers,
     });
-    this.setState({
-      dataUsers: result,
-      completeList: result,
+    AppState.addEventListener('change', (stateapp) => {
+      this.handleAppStateChange(stateapp);
     });
+    
+    
+    
+  }
+  async handleAppStateChange(nextAppState: AppStateStatus) {
+    console.log(nextAppState);
+    if (nextAppState.match(/inactive|background/) && nextAppState === 'active') {
+      console.log("APP COME NEW ")
+      /*this.setState({appState: nextAppState});
+      console.log("ENTER")
+      var {loadMainListUsers} = this.context;
+      await loadMainListUsers();
+      var {listusers} = this.context;
+      this.setState({ 
+        dataUsers: listusers,
+        completeList: listusers,
+      });*/
+    }
+    
   }
   listItem(item: ItemUser) {
       const {dispatch} = this.context;
@@ -64,7 +92,7 @@ class ListUsers extends Component<MyProps, MyState> {
         description={item.email}
         onPress={() => {
             dispatch({type: Types.CHANGEITEMUSER, payload: item});
-            this.props.navigation.push("DetailUsers");
+            this.props.navigation.navigate("DetailUsers");
         }}
         left={props => <List.Icon {...props} icon="incognito" />}
         />
@@ -75,7 +103,7 @@ class ListUsers extends Component<MyProps, MyState> {
                   description={item.email}
                   onPress={() => {
                     dispatch({type: Types.CHANGEITEMUSER, payload: item});
-                    this.props.navigation.push("DetailUsers");
+                    this.props.navigation.navigate("DetailUsers");
                 }}
                   left={props => <Avatar.Image size={48} source={{uri : uriImg}} />}
         />
@@ -103,8 +131,17 @@ class ListUsers extends Component<MyProps, MyState> {
     }
     
   }
+  reloadContext() {
+    console.log("ENTER CONTEXT");
+    var {listusers} = this.context;
+    this.setState({ 
+      dataUsers: listusers,
+      completeList: listusers,
+    });
+  }
   render() {
     var {searchbarVisible} = this.context;
+    var {listusers} = this.context;
     return (
         <View style={styles.container}>
           <View>
@@ -133,7 +170,9 @@ class ListUsers extends Component<MyProps, MyState> {
             small={false}
             icon="plus"
             onPress={() => {
-                this.props.navigation.push("RegisterUsers");
+                this.props.navigation.navigate("RegisterUsers", {reloadContext: () => {
+                  this.reloadContext();
+                }});
             }}
           />
         </View>
