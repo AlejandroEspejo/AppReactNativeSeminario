@@ -5,6 +5,18 @@ export interface ActionType {
 }
 export default (state: any, action: ActionType) => {
     switch (action.type) {
+        case Types.SETSERVERERRORMSN: {
+            return {
+                ...state,
+                serverErrorMessages: action.payload
+            }
+        }
+        case Types.SETAUTHUSER: {
+            return {
+                ...state,
+                userAuth: action.payload
+            }
+        }
         case Types.LOADUSERS: {
             return {
                 ...state,

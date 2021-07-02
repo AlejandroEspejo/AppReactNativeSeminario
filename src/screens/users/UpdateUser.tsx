@@ -40,7 +40,7 @@ class UpdateUser extends Component<MyProps, Mystate> {
                 
             }
         );
-        changeUri("http://192.168.0.106:8000" + this.context.itemuser.uriavatar, false);
+        changeUri(this.context.itemuser.uriavatar, false);
     }
     async checkandSendData() {
         

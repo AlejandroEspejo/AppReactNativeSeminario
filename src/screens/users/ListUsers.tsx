@@ -22,8 +22,9 @@ export interface ItemUser{
   uriavatar?: string
 }
 interface ServerResponse {
-  serverResponse:Array<ItemUser>
+  serverResponse: ItemUser
 }
+
 interface MyState {
   dataUsers: Array<ItemUser>,
   completeList: Array<ItemUser>,
@@ -97,7 +98,7 @@ class ListUsers extends Component<MyProps, MyState> {
         left={props => <List.Icon {...props} icon="incognito" />}
         />
       } else {
-        var uriImg: string = "http://192.168.0.106:8000" + item.uriavatar;
+        var uriImg: string = item.uriavatar;
         return <List.Item
                   title={item.username}
                   description={item.email}
