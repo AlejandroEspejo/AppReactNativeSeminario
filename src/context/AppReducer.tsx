@@ -1,30 +1,30 @@
-import {Types} from "./ContantTypes";
+import {Types} from './ContantTypes';
 export interface ActionType {
-    type: string,
-    payload: any
+  type: string;
+  payload: any;
 }
 export default (state: any, action: ActionType) => {
-    switch (action.type) {
-        case Types.CHANGEITEMUSER: {
-            return {
-                ...state,
-                itemuser: action.payload
-            }
-        }
-        case Types.CHANGEURI: {
-            return {
-                ...state,
-                uriphoto: action.payload
-            }
-        }
-        case Types.SEARCHBARVISIBLE: {
-            return {
-                ...state,
-                searchbarVisible: action.payload
-            }
-        }
-        default: {
-            return state;
-        }
+  switch (action.type) {
+    case Types.CHANGEITEMUSER: {
+      return {
+        ...state,
+        itemuser: action.payload,
+      };
     }
-}
+    case Types.CHANGEURI: {
+      return {
+        ...state,
+        uriphoto: action.payload,
+      };
+    }
+    case Types.SEARCHBARVISIBLE: {
+      return {
+        ...state,
+        searchbarVisible: action.payload,
+      };
+    }
+    default: {
+      return state;
+    }
+  }
+};
