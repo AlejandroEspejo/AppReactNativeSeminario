@@ -62,7 +62,7 @@ class UpdateUser extends Component<MyProps, Mystate> {
             };
         }
         
-        var result: any = await axios.put<ItemUser, AxiosResponse<any>>("http://192.168.0.106:8000/api/users/" + this.context.itemuser._id, dataSend)
+        var result: any = await axios.put<ItemUser, AxiosResponse<any>>("http://192.168.100.223:8000/api/users/" + this.context.itemuser._id, dataSend)
         .then((response) => {
             return response.data;
         });
@@ -72,8 +72,8 @@ class UpdateUser extends Component<MyProps, Mystate> {
             name: "avatar.jpg", 
             uri: this.context.uriphoto, 
             type: "image/jpg"});
-            console.log("http://192.168.0.106:8000/api/uploadportrait/" + this.context.itemuser._id)
-            fetch("http://192.168.0.106:8000/api/uploadportrait/" + this.context.itemuser._id, {
+            console.log("http://192.168.100.223:8000/api/uploadportrait/" + this.context.itemuser._id)
+            fetch("http://192.168.100.223:8000/api/uploadportrait/" + this.context.itemuser._id, {
                 method: "POST",
                 headers: {
                     "Content-Type": "multipart/form-data"

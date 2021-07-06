@@ -28,7 +28,7 @@ class DetailUsers extends Component<MyProps, MyState> {
     }
   }
   async componentDidMount() {
-    var result: Array<IRoles> = await axios.get<ServerResponse>("http://192.168.0.106:8000/api/roles").then((item) => {
+    var result: Array<IRoles> = await axios.get<ServerResponse>("http://192.168.100.223:8000/api/roles").then((item) => {
       return item.data.serverResponse
     });
     this.setState({
@@ -48,7 +48,7 @@ class DetailUsers extends Component<MyProps, MyState> {
         {
           itemuser.roles.map(item => {
             return <Chip key={item._id} icon="information" onPress={async () => {
-              var result: ItemUser = await axios.put<ServerResponsePutRoles>("http://192.168.0.106:8000/api/removerol/" + this.context.itemuser._id, {idRol: item._id}).then((item) => {
+              var result: ItemUser = await axios.put<ServerResponsePutRoles>("http://192.168.100.223:8000/api/removerol/" + this.context.itemuser._id, {idRol: item._id}).then((item) => {
                 return item.data.serverResponse;
               });
               dispatch({type: Types.CHANGEITEMUSER, payload: result});
@@ -59,7 +59,7 @@ class DetailUsers extends Component<MyProps, MyState> {
   }
   async onClickListItme(item: IRoles) {
     const {dispatch} = this.context;
-    var result: ItemUser = await axios.put<ServerResponsePutRoles>("http://192.168.0.106:8000/api/addrol/" + this.context.itemuser._id, {idRol: item._id}).then((item) => {
+    var result: ItemUser = await axios.put<ServerResponsePutRoles>("http://192.168.100.223:8000/api/addrol/" + this.context.itemuser._id, {idRol: item._id}).then((item) => {
           return item.data.serverResponse;
         });
           dispatch({type: Types.CHANGEITEMUSER, payload: result});
@@ -83,7 +83,7 @@ class DetailUsers extends Component<MyProps, MyState> {
                     <Button icon="delete" onPress={() => {
                       Alert.alert("Borrar usuario", "Desea Borrar Al usuario " + itemuser.username, [
                         {text: "Confirmar", onPress: async() => {
-                          var result = await axios.delete("http://192.168.0.106:8000/api/users/" + this.context.itemuser._id);
+                          var result = await axios.delete("http://192.168.100.223:8000/api/users/" + this.context.itemuser._id);
                           var {loadMainListUsers} = this.context;
                           loadMainListUsers();
                           this.props.navigation.pop();
