@@ -9,8 +9,13 @@ class Resource<type, newType, updateType> {
     this.token = sesionToken;
     this.request = funCreateAxios(sesionToken);
   }
-  list(query: object | undefined = undefined): Promise<Array<type>> {
-    return this.request.get<type, Array<type>>('/' + this.uri, {params: query});
+  list(query?: object, options?: object): Promise<Array<type>> {
+    return this.request.get<type, Array<type>>('/' + this.uri, {
+      params: {
+        query: query,
+        options: options,
+      },
+    });
   }
   get(id: string): Promise<type> {
     return this.request.get<type, type>('/' + this.uri + '/' + id);

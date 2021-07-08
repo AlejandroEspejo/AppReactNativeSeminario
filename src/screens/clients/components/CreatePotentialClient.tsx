@@ -2,8 +2,8 @@ import React, {Component} from 'react';
 import {Text, View, ScrollView, StyleSheet, Image} from 'react-native';
 import {TextInput, Button, Switch, RadioButton} from 'react-native-paper';
 import AppContext from '../../../context/AppContext';
-import {Col, Row, Grid} from 'react-native-paper-grid';
 import Slider from 'react-native-sliders';
+import {Col, Row, Grid} from 'react-native-paper-grid';
 // import MapView, {Marker} from 'react-native-maps';
 import ClientsResource, {
   IClient,
@@ -184,12 +184,11 @@ class CreatePotentialClient extends Component<MyProps, Mystate> {
                   minimumTrackTintColor={'#00ff00'}
                   thumbTouchSize={{width: 40, height: 40}}
                   step={1}
-                  onValueChange={(newVal: number) => {
-                    console.log(newVal);
+                  onValueChange={(newVal: number[]) => {
                     this.setState({
                       newClient: {
                         ...this.state.newClient,
-                        probability_client: newVal,
+                        probability_client: newVal[0],
                       },
                     });
                   }}

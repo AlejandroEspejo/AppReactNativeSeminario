@@ -17,6 +17,7 @@ export interface IClient {
   zona?: string;
   calle?: string;
   tipocliente?: string;
+  __v?: any;
 }
 
 export interface INewClient {
@@ -51,6 +52,7 @@ export interface IUpdateClient {
   zona?: string;
   calle?: string;
   tipocliente?: string;
+  __v?: any;
 }
 
 export default class ClientsResource extends Resource<

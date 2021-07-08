@@ -29,7 +29,6 @@ function createAxiosInstance(sesionToken: string) {
     },
     error => {
       console.log(error.request);
-      console.log('some error');
       return Promise.reject(error);
     },
   );

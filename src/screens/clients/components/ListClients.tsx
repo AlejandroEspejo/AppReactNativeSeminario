@@ -8,6 +8,7 @@ import {API_HOST} from '../../../utils/config';
 interface IProps {
   onSelectOne(client: IClient): void;
   onPressNewClient(): void;
+  reloadList(reloadList: Function): void;
 }
 interface IState {
   listClient: Array<IClient>;
@@ -22,6 +23,7 @@ export default class ListClients extends Component<IProps, IState> {
       listClient: [],
       searchKeyWord: '',
     };
+    this.props.reloadList(this.getList);
     this.CR = null;
   }
   componentDidUpdate() {
@@ -32,7 +34,7 @@ export default class ListClients extends Component<IProps, IState> {
     this.CR = new ClientsResource(token);
     this.getList();
   }
-  getList() {
+  getList = () => {
     var initialState: IState = {
       listClient: [],
       searchKeyWord: '',
@@ -47,7 +49,7 @@ export default class ListClients extends Component<IProps, IState> {
           console.log(err);
         });
     }
-  }
+  };
   onChangeSearchKeyword(change: string) {
     this.setState({...this.state, searchKeyWord: change});
     // reload list
@@ -56,7 +58,7 @@ export default class ListClients extends Component<IProps, IState> {
     return (
       <List.Item
         title={`${item.first_name} ${item.last_name}`}
-        description={item.tipocliente}
+        description={`Probabilidad de captar el cliente ${item.probability_client}%`}
         onPress={() => {
           this.props.onSelectOne(item);
         }}
