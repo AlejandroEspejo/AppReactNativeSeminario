@@ -7,25 +7,31 @@ import {
 import {Appbar, Text} from 'react-native-paper';
 import ListClients from './components/ListClients';
 import {IClient} from '../../resources/ClientsResource';
-import CreatePotentialClient from './components/CreatePotentialClient';
+import CreatePotentialClient from './components/FormClient';
 import DetailClient from './components/DetailClient';
 var Stack = createStackNavigator();
 interface IState {
   selectClient?: IClient;
   loadList?: Function;
+  onChangeDetailClientValue?: Function;
 }
 export default class PotentialClients extends Component<any, IState> {
   constructor(props: any) {
     super(props);
     this.state = {};
   }
-  async onSelectClient(client: IClient) {
+  onSelectClient(client: IClient | undefined) {
     this.setState({
       selectClient: client,
     });
   }
   changeState(state: IState) {
     this.setState(state);
+  }
+  onChangeDetailtClientValue() {
+    if (this.state.onChangeDetailClientValue) {
+      this.state.onChangeDetailClientValue(this.state.selectClient);
+    }
   }
   renderListClient = (props: any) => {
     const navigation: StackNavigationProp<any, any> = props.navigation;
@@ -43,6 +49,7 @@ export default class PotentialClients extends Component<any, IState> {
             loadList: reloadList,
           });
         }}
+        type="potential"
       />
     );
   };
@@ -50,12 +57,23 @@ export default class PotentialClients extends Component<any, IState> {
     const navigation: StackNavigationProp<any, any> = props.navigation;
     return (
       <CreatePotentialClient
-        onSaveClient={() => {
+        onSaveClient={client => {
           if (this.state.loadList) {
             this.state.loadList();
           }
+          if (this.state.selectClient) {
+            this.setState({
+              selectClient: client,
+            });
+            this.onChangeDetailtClientValue();
+          }
           navigation.pop();
         }}
+        values={this.state.selectClient}
+        clientId={
+          this.state.selectClient ? this.state.selectClient._id : undefined
+        }
+        isRegularClient={false}
       />
     );
   };
@@ -65,9 +83,12 @@ export default class PotentialClients extends Component<any, IState> {
       <DetailClient
         client={this.state.selectClient}
         onEdit={(client: IClient) => {
-          console.log('on Edit Client; ', client);
           //to edit client
-          navigation.pop();
+          this.onSelectClient(client);
+          navigation.navigate('createClient');
+        }}
+        notifyOnChangeClient={callback => {
+          this.changeState({onChangeDetailClientValue: callback});
         }}
         ChildrenComponent={(client: IClient | undefined) => {
           console.log(client);
@@ -97,12 +118,21 @@ export default class PotentialClients extends Component<any, IState> {
                 <Appbar.Header>
                   <Appbar.BackAction
                     onPress={() => {
+                      this.onSelectClient(undefined);
                       navigate.navigation.pop();
                     }}
                   />
                   <Appbar.Content
-                    title="Crear usuario Potencial"
-                    subtitle={'introduzca sus datos'}
+                    title={
+                      this.state.selectClient
+                        ? 'Editar Cliente Potencial'
+                        : 'Crear Cliente Potencial'
+                    }
+                    subtitle={
+                      this.state.selectClient
+                        ? 'Modifique sus datos'
+                        : 'Introduzca sus datos'
+                    }
                   />
                 </Appbar.Header>
               ),
@@ -116,6 +146,10 @@ export default class PotentialClients extends Component<any, IState> {
                 <Appbar.Header>
                   <Appbar.BackAction
                     onPress={() => {
+                      this.onSelectClient(undefined);
+                      if (this.state.loadList) {
+                        this.state.loadList();
+                      }
                       navigate.navigation.pop();
                     }}
                   />
@@ -127,46 +161,6 @@ export default class PotentialClients extends Component<any, IState> {
               ),
             })}
           />
-          {/* <Stack.Screen
-            name="DetailUsers"
-            component={DetailUsers}
-            options={() => ({
-              header: navigate => (
-                <Appbar.Header>
-                  <Appbar.BackAction
-                    onPress={() => {
-                      navigate.navigation.pop();
-                      //this.props.navigation.pop();
-                    }}
-                  />
-                  <Appbar.Content
-                    title="Datos de Usuario"
-                    subtitle={'Sistema de roles'}
-                  />
-                </Appbar.Header>
-              ),
-            })}
-          />
-          <Stack.Screen
-            name="UpdateUser"
-            component={UpdateUser}
-            options={() => ({
-              header: navigate => (
-                <Appbar.Header>
-                  <Appbar.BackAction
-                    onPress={() => {
-                      navigate.navigation.pop();
-                      //this.props.navigation.pop();
-                    }}
-                  />
-                  <Appbar.Content
-                    title="Datos de Usuario"
-                    subtitle={'Sistema de roles'}
-                  />
-                </Appbar.Header>
-              ),
-            })}
-          /> */}
         </Stack.Navigator>
       </NavigationContainer>
     );

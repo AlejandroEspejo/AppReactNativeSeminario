@@ -8,6 +8,7 @@ import {API_HOST} from '../../../utils/config';
 interface IProps {
   onSelectOne(client: IClient): void;
   onPressNewClient(): void;
+  type: 'regular' | 'potential';
   reloadList(reloadList: Function): void;
 }
 interface IState {
@@ -23,26 +24,47 @@ export default class ListClients extends Component<IProps, IState> {
       listClient: [],
       searchKeyWord: '',
     };
-    this.props.reloadList(this.getList);
+    this.props.reloadList(() => {
+      this.getList(this.state.searchKeyWord);
+    });
     this.CR = null;
-  }
-  componentDidUpdate() {
-    this.getList();
   }
   componentDidMount() {
     const {token} = this.context.userAuth;
     this.CR = new ClientsResource(token);
     this.getList();
   }
-  getList = () => {
-    var initialState: IState = {
+  getList = (kw?: string) => {
+    console.log('init query');
+    var initialState: any = {
       listClient: [],
-      searchKeyWord: '',
     };
     if (this.CR !== null) {
-      this.CR.list()
+      var queryObject: any = {
+        regularclient: {$eq: this.props.type === 'regular' ? true : false},
+      };
+      if (kw) {
+        queryObject = {
+          $or: [
+            {
+              regularclient: {
+                $eq: this.props.type === 'regular' ? true : false,
+              },
+              first_name: {$regex: '.*' + kw + '.*', $options: 'i'},
+            },
+            {
+              regularclient: {
+                $eq: this.props.type === 'regular' ? true : false,
+              },
+              last_name: {$regex: '.*' + kw + '.*', $options: 'i'},
+            },
+          ],
+        };
+      }
+      this.CR.list(queryObject)
         .then((resp: Array<IClient>) => {
           initialState.listClient = resp;
+          console.log('response: ', resp);
           this.setState(initialState);
         })
         .catch(err => {
@@ -51,14 +73,18 @@ export default class ListClients extends Component<IProps, IState> {
     }
   };
   onChangeSearchKeyword(change: string) {
-    this.setState({...this.state, searchKeyWord: change});
-    // reload list
+    this.setState({searchKeyWord: change});
+    this.getList(change);
   }
   listItem(item: IClient) {
     return (
       <List.Item
         title={`${item.first_name} ${item.last_name}`}
-        description={`Probabilidad de captar el cliente ${item.probability_client}%`}
+        description={
+          this.props.type === 'regular'
+            ? item.tipocliente
+            : `Probabilidad de captar el cliente ${item.probability_client}%`
+        }
         onPress={() => {
           this.props.onSelectOne(item);
         }}
@@ -115,6 +141,14 @@ export default class ListClients extends Component<IProps, IState> {
               this.props.onPressNewClient();
             }}
           />
+          <FAB
+            style={styles.fab2}
+            small={false}
+            icon="repeat"
+            onPress={() => {
+              this.getList(this.state.searchKeyWord);
+            }}
+          />
         </View>
       </NavigationContainer>
     );
@@ -129,5 +163,11 @@ const styles = StyleSheet.create({
     margin: 16,
     right: 0,
     bottom: 0,
+  },
+  fab2: {
+    position: 'absolute',
+    margin: 16,
+    right: 0,
+    bottom: 60,
   },
 });

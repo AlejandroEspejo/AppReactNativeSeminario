@@ -21,7 +21,7 @@ export default class Clients extends Component<any, any> {
             name="Clientes Potenciales"
             component={PotentialClients}
           />
-          <Tab.Screen name="Agenda Negocio" component={BusinessSchedule} />
+          <Tab.Screen name="Agenda Negociación" component={BusinessSchedule} />
         </Tab.Navigator>
       </NavigationContainer>
     );

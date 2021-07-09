@@ -11,6 +11,7 @@ import ClientsResource, {
 } from '../../../resources/ClientsResource';
 import TakePhoto from './TakePhoto';
 import {NavigationContainer} from '@react-navigation/native';
+import {API_HOST} from '../../../utils/config';
 
 interface Mystate {
   newClient: INewClient;
@@ -21,8 +22,9 @@ interface MyProps {
   onSaveClient(client: IClient): void;
   clientId?: string;
   values?: IClient;
+  isRegularClient?: boolean;
 }
-class CreatePotentialClient extends Component<MyProps, Mystate> {
+class FormClient extends Component<MyProps, Mystate> {
   static contextType = AppContext;
   CR: ClientsResource | null = null;
   constructor(props: MyProps) {
@@ -34,6 +36,7 @@ class CreatePotentialClient extends Component<MyProps, Mystate> {
         : {
             first_name: '',
             last_name: '',
+            regularclient: props.isRegularClient ? true : false,
           },
     };
     this.CR = null;
@@ -46,8 +49,8 @@ class CreatePotentialClient extends Component<MyProps, Mystate> {
     if (this.CR && this.state.isload) {
       const pathPhoto: string = this.state.pathImg ? this.state.pathImg : '';
       this.CR.sendClientPhoto(client._id, pathPhoto)
-        .then(result => {
-          console.log('on Save photo: ', result);
+        .then(() => {
+          console.log('photo saved');
         })
         .catch(err => {
           console.log(err);
@@ -55,16 +58,27 @@ class CreatePotentialClient extends Component<MyProps, Mystate> {
     }
   }
   onPressSaveClient() {
-    if (this.checkData()) {
-      this.CR?.store(this.state.newClient)
-        .then((response: IClient) => {
-          console.log('before send photo: ', this.state);
-          this.sendClientPhoto(response);
-          this.props.onSaveClient(response);
-        })
-        .catch(err => {
-          console.log(err);
-        });
+    if (this.checkData() && this.CR) {
+      if (!this.props.clientId) {
+        this.CR.store(this.state.newClient)
+          .then((response: IClient) => {
+            console.log('before send photo: ', this.state);
+            this.sendClientPhoto(response);
+            this.props.onSaveClient(response);
+          })
+          .catch(err => {
+            console.log(err);
+          });
+      } else {
+        this.CR.update(this.props.clientId, this.state.newClient)
+          .then((response: IClient) => {
+            this.sendClientPhoto({...response, ...this.state.newClient});
+            this.props.onSaveClient({...response, ...this.state.newClient});
+          })
+          .catch(err => {
+            console.log(err);
+          });
+      }
     }
   }
   checkData() {
@@ -77,12 +91,19 @@ class CreatePotentialClient extends Component<MyProps, Mystate> {
         <Image style={styles.imageStyle} source={{uri: this.state.pathImg}} />
       );
     } else {
-      return (
+      if (this.state.newClient.uri_photo) {
         <Image
           style={styles.imageStyle}
-          source={require('../../../../assets/img/batman.png')}
-        />
-      );
+          source={{uri: `${API_HOST}${this.state.newClient.uri_photo}`}}
+        />;
+      } else {
+        return (
+          <Image
+            style={styles.imageStyle}
+            source={require('../../../../assets/img/batman.png')}
+          />
+        );
+      }
     }
   }
   render() {
@@ -92,6 +113,7 @@ class CreatePotentialClient extends Component<MyProps, Mystate> {
           <TextInput
             style={styles.txtStyles}
             label="Nombres"
+            value={this.state.newClient.first_name}
             onChangeText={text => {
               this.setState({
                 newClient: {...this.state.newClient, first_name: text},
@@ -101,6 +123,7 @@ class CreatePotentialClient extends Component<MyProps, Mystate> {
           <TextInput
             style={styles.txtStyles}
             label="Apellidos"
+            value={this.state.newClient.last_name}
             onChangeText={text => {
               this.setState({
                 newClient: {...this.state.newClient, last_name: text},
@@ -110,6 +133,7 @@ class CreatePotentialClient extends Component<MyProps, Mystate> {
           <TextInput
             style={styles.txtStyles}
             label="Cel. / Telf."
+            value={this.state.newClient.telf}
             onChangeText={text => {
               this.setState({
                 newClient: {...this.state.newClient, telf: text},
@@ -119,6 +143,7 @@ class CreatePotentialClient extends Component<MyProps, Mystate> {
           <TextInput
             style={styles.txtStyles}
             label="Email"
+            value={this.state.newClient.email}
             onChangeText={text => {
               this.setState({
                 newClient: {...this.state.newClient, email: text},
@@ -159,42 +184,46 @@ class CreatePotentialClient extends Component<MyProps, Mystate> {
                 />
               </Col>
             </Row>
-            <Row>
-              <Col size={70}>
-                <Text>{'Probabilidad de Negociación'}</Text>
-              </Col>
-              <Col size={30}>
-                <Text>{`${
-                  this.state.newClient.probability_client
-                    ? this.state.newClient.probability_client
-                    : 0
-                }%`}</Text>
-              </Col>
-            </Row>
-            <Row>
-              <Col>
-                <Slider
-                  value={
+            {!this.state.newClient.regularclient && (
+              <Row>
+                <Col size={70}>
+                  <Text>{'Probabilidad de Negociación'}</Text>
+                </Col>
+                <Col size={30}>
+                  <Text>{`${
                     this.state.newClient.probability_client
                       ? this.state.newClient.probability_client
                       : 0
-                  }
-                  minimumValue={0}
-                  maximumValue={100}
-                  minimumTrackTintColor={'#00ff00'}
-                  thumbTouchSize={{width: 40, height: 40}}
-                  step={1}
-                  onValueChange={(newVal: number[]) => {
-                    this.setState({
-                      newClient: {
-                        ...this.state.newClient,
-                        probability_client: newVal[0],
-                      },
-                    });
-                  }}
-                />
-              </Col>
-            </Row>
+                  }%`}</Text>
+                </Col>
+              </Row>
+            )}
+            {!this.state.newClient.regularclient && (
+              <Row>
+                <Col>
+                  <Slider
+                    value={
+                      this.state.newClient.probability_client
+                        ? this.state.newClient.probability_client
+                        : 0
+                    }
+                    minimumValue={0}
+                    maximumValue={100}
+                    minimumTrackTintColor={'#00ff00'}
+                    thumbTouchSize={{width: 40, height: 40}}
+                    step={1}
+                    onValueChange={(newVal: number[]) => {
+                      this.setState({
+                        newClient: {
+                          ...this.state.newClient,
+                          probability_client: newVal[0],
+                        },
+                      });
+                    }}
+                  />
+                </Col>
+              </Row>
+            )}
             <Row>
               <Col>
                 <Text>{'Dirección'}</Text>
@@ -218,6 +247,7 @@ class CreatePotentialClient extends Component<MyProps, Mystate> {
                 <TextInput
                   style={styles.txtStyles}
                   label="Zona"
+                  value={this.state.newClient.zona}
                   onChangeText={text => {
                     this.setState({
                       newClient: {...this.state.newClient, zona: text},
@@ -231,6 +261,7 @@ class CreatePotentialClient extends Component<MyProps, Mystate> {
                 <TextInput
                   style={styles.txtStyles}
                   label="Calle"
+                  value={this.state.newClient.calle}
                   onChangeText={text => {
                     this.setState({
                       newClient: {...this.state.newClient, calle: text},
@@ -315,4 +346,4 @@ const styles = StyleSheet.create({
   },
   imageStyle: {width: 150, height: 150},
 });
-export default CreatePotentialClient;
+export default FormClient;

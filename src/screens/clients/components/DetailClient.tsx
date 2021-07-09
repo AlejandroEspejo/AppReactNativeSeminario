@@ -2,7 +2,7 @@ import {NavigationContainer} from '@react-navigation/native';
 import React, {Component} from 'react';
 import ClientsResource, {IClient} from '../../../resources/ClientsResource';
 import {Col, Row, Grid} from 'react-native-paper-grid';
-import {Image, Text, View, StyleSheet, ScrollView} from 'react-native';
+import {Image, Text, View, StyleSheet, ScrollView, Linking} from 'react-native';
 import {API_HOST} from '../../../utils/config';
 import {Button, Switch} from 'react-native-paper';
 import AppContex from '../../../context/AppContext';
@@ -11,6 +11,7 @@ export interface IProps {
   client?: IClient;
   onEdit(client: IClient): void;
   ChildrenComponent(client: IClient): Element;
+  notifyOnChangeClient(callback: Function): void;
 }
 
 export interface IState {
@@ -21,7 +22,13 @@ export default class DetailClient extends Component<IProps, IState> {
   constructor(props: IProps) {
     super(props);
     this.state = {client: props.client};
+    this.props.notifyOnChangeClient(this.changeStateClientValue);
   }
+  changeStateClientValue = (client: IClient) => {
+    this.setState({
+      client: client,
+    });
+  };
   onClicEnRuta() {
     const CR = new ClientsResource(this.context.userAuth.token);
     if (this.state.client) {
@@ -104,6 +111,11 @@ export default class DetailClient extends Component<IProps, IState> {
                           mode="contained"
                           onPress={() => {
                             console.log('press Llamar');
+                            if (this.state.client) {
+                              Linking.openURL(`tel:${this.state.client.telf}`);
+                            } else {
+                              console.log('no tienen numero');
+                            }
                           }}>
                           LLAMAR
                         </Button>
@@ -161,20 +173,22 @@ export default class DetailClient extends Component<IProps, IState> {
                   </ScrollView>
                 </Col>
               </Row>
-              <Row>
-                <Col>
-                  <View style={styles.viewContainterCenter}>
-                    <Button
-                      icon="repeat"
-                      mode="contained"
-                      onPress={() => {
-                        this.onClicConvertToRegularClient();
-                      }}>
-                      CONVERTIR A CLIENTE REGULAR
-                    </Button>
-                  </View>
-                </Col>
-              </Row>
+              {!this.state.client.regularclient && (
+                <Row>
+                  <Col>
+                    <View style={styles.viewContainterCenter}>
+                      <Button
+                        icon="repeat"
+                        mode="contained"
+                        onPress={() => {
+                          this.onClicConvertToRegularClient();
+                        }}>
+                        CONVERTIR A CLIENTE REGULAR
+                      </Button>
+                    </View>
+                  </Col>
+                </Row>
+              )}
               <Row>
                 <Col>
                   <View style={styles.viewContainterCenter}>
