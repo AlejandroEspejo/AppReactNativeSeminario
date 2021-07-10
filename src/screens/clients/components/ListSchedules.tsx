@@ -1,68 +1,65 @@
 import React, {Component} from 'react';
 import {NavigationContainer} from '@react-navigation/native';
-import {Text, View, FlatList, StyleSheet, Image} from 'react-native';
-import {Checkbox, FAB, List, Searchbar} from 'react-native-paper';
+import {Text, View, FlatList, StyleSheet} from 'react-native';
+import {FAB, List, Searchbar} from 'react-native-paper';
 import AppContext from '../../../context/AppContext';
-import ClientsResource, {IClient} from '../../../resources/ClientsResource';
-import {API_HOST} from '../../../utils/config';
+import SchedulesResource, {
+  ISchedule,
+} from '../../../resources/SchedulesResource';
+import {timeDiffCalc} from '../../../utils/DateTimeFunctions';
 interface IProps {
-  onSelectOne(client: IClient): void;
-  onPressNewClient(): void;
-  type: 'regular' | 'potential';
+  onSelectOne(Schedule: ISchedule): void;
+  onPressNewSchedule(): void;
   reloadList(reloadList: Function): void;
 }
 interface IState {
-  listClient: Array<IClient>;
+  listSchedules: Array<ISchedule>;
   searchKeyWord: string;
 }
-export default class ListClients extends Component<IProps, IState> {
+export default class ListSchedules extends Component<IProps, IState> {
   static contextType = AppContext;
-  CR: ClientsResource | null = null;
+  SR: SchedulesResource | null = null;
   constructor(props: IProps) {
     super(props);
     this.state = {
-      listClient: [],
+      listSchedules: [],
       searchKeyWord: '',
     };
     this.props.reloadList(() => {
       this.getList(this.state.searchKeyWord);
     });
-    this.CR = null;
+    this.SR = null;
   }
   componentDidMount() {
     const {token} = this.context.userAuth;
-    this.CR = new ClientsResource(token);
+    this.SR = new SchedulesResource(token);
     this.getList();
   }
   getList = (kw?: string) => {
     var initialState: any = {
-      listClient: [],
+      listSchedules: [],
     };
-    if (this.CR !== null) {
-      var queryObject: any = {
-        regularclient: {$eq: this.props.type === 'regular' ? true : false},
-      };
+    if (this.SR !== null) {
+      var queryObject: any = {};
       if (kw) {
         queryObject = {
           $or: [
             {
-              regularclient: {
-                $eq: this.props.type === 'regular' ? true : false,
+              client: {
+                first_name: {$regex: '.*' + kw + '.*', $options: 'i'},
               },
-              first_name: {$regex: '.*' + kw + '.*', $options: 'i'},
             },
             {
-              regularclient: {
-                $eq: this.props.type === 'regular' ? true : false,
+              client: {
+                last_name: {$regex: '.*' + kw + '.*', $options: 'i'},
               },
-              last_name: {$regex: '.*' + kw + '.*', $options: 'i'},
             },
           ],
         };
       }
-      this.CR.list(queryObject)
-        .then((resp: Array<IClient>) => {
-          initialState.listClient = resp;
+      this.SR.list(queryObject)
+        .then((resp: Array<ISchedule>) => {
+          initialState.listSchedules = resp;
           this.setState(initialState);
         })
         .catch(err => {
@@ -74,39 +71,23 @@ export default class ListClients extends Component<IProps, IState> {
     this.setState({searchKeyWord: change});
     this.getList(change);
   }
-  listItem(item: IClient) {
+  listItem(item: ISchedule) {
     return (
-      <List.Item
-        title={`${item.first_name} ${item.last_name}`}
-        description={
-          this.props.type === 'regular'
-            ? item.tipocliente
-            : `Probabilidad de captar el cliente ${item.probability_client}%`
-        }
-        onPress={() => {
-          this.props.onSelectOne(item);
-        }}
-        left={props => {
-          if (item.uri_photo) {
-            return (
-              <Image
-                style={{width: 48, height: 48}}
-                source={{
-                  uri: API_HOST + item.uri_photo,
-                }}
-              />
-            );
-          } else {
-            return <List.Icon {...props} icon={'incognito'} />;
-          }
-        }}
-        right={() => (
-          <React.Fragment>
-            <Checkbox status={item.in_route ? 'checked' : 'unchecked'} />
-            <Text>{'en Ruta'}</Text>
-          </React.Fragment>
-        )}
-      />
+      <View style={styles.itemStyle}>
+        <List.Item
+          title={`${item.client.first_name} ${item.client.last_name}    P. ${item.client.probability_client}%`}
+          onPress={() => {
+            this.props.onSelectOne(item);
+          }}
+          right={() => (
+            <React.Fragment>
+              <Text>{`Dentro de ${timeDiffCalc(
+                `${item.date}T${item.time}:00`,
+              )}`}</Text>
+            </React.Fragment>
+          )}
+        />
+      </View>
     );
   }
   render() {
@@ -126,7 +107,7 @@ export default class ListClients extends Component<IProps, IState> {
           </View>
           <View>
             <FlatList
-              data={this.state.listClient}
+              data={this.state.listSchedules}
               renderItem={({item}) => this.listItem(item)}
               keyExtractor={item => item._id}
             />
@@ -136,7 +117,7 @@ export default class ListClients extends Component<IProps, IState> {
             small={false}
             icon="plus"
             onPress={() => {
-              this.props.onPressNewClient();
+              this.props.onPressNewSchedule();
             }}
           />
           <FAB
@@ -167,5 +148,11 @@ const styles = StyleSheet.create({
     margin: 16,
     right: 0,
     bottom: 60,
+  },
+  itemStyle: {
+    borderColor: '#aaaaaa',
+    borderWidth: 2,
+    borderRadius: 5,
+    padding: 4,
   },
 });

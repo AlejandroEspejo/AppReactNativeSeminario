@@ -5,6 +5,7 @@ import {Types} from './ContantTypes';
 import {ItemUser} from '../screens/users/ListUsers';
 import axios from 'axios';
 import {IGoogleUser} from '../screens/Login';
+import {API_HOST, API_URL} from '../utils/config';
 // Es el conjunto de datos
 interface ServerResponse {
   serverResponse: Array<ItemUser>;
@@ -38,16 +39,16 @@ const DataState = (props: any) => {
   };
   const loginGoogle = async (user: IGoogleUser, callBack: Function) => {
     var dataresult: any = await axios.post<ServerResponseLogin>(
-      'http://192.168.100.223:8000/api/users',
+      API_URL + '/users',
       {username: user.name, email: user.email, password: user.id},
     );
     var result: any = dataresult.data;
     if (result.serverResponse.code != null) {
       //Login user
-      var loginr: any = await axios.post(
-        'http://192.168.100.223:8000/api/login',
-        {email: user.email, password: user.id},
-      );
+      var loginr: any = await axios.post(API_URL + '/login', {
+        email: user.email,
+        password: user.id,
+      });
       if (loginr.data.serverResponse == 'Credenciales incorrectas') {
         dispatch({
           type: Types.SETSERVERERRORMSN,
@@ -64,14 +65,13 @@ const DataState = (props: any) => {
     }
     if (result.serverResponse._id != null) {
       //http://localhost:8000/api/users/60df667affede700328cdc48
-      await axios.put(
-        'http://192.168.100.223:8000/api/users/' + result.serverResponse._id,
-        {uriavatar: user.photo},
-      );
-      var loginr: any = await axios.post(
-        'http://192.168.100.223:8000/api/login',
-        {email: user.email, password: user.id},
-      );
+      await axios.put(API_URL + '/users/' + result.serverResponse._id, {
+        uriavatar: user.photo,
+      });
+      var loginr: any = await axios.post(API_URL + '/login', {
+        email: user.email,
+        password: user.id,
+      });
       if (loginr.data.serverResponse == 'Credenciales incorrectas') {
         dispatch({
           type: Types.SETSERVERERRORMSN,
@@ -90,7 +90,7 @@ const DataState = (props: any) => {
   const loadMainListUsers = async () => {
     var token = state.userAuth.token;
     var result: Array<ItemUser> = await axios
-      .get<ServerResponse>('http://192.168.100.223:8000/api/users', {
+      .get<ServerResponse>(API_URL + '/users', {
         headers: {
           Authorization: token,
         },
@@ -103,7 +103,7 @@ const DataState = (props: any) => {
         item.uriavatar != null &&
         item.uriavatar.match(/\/api\/getportrait\/\w+/g) != null
       ) {
-        item.uriavatar = 'http://192.168.100.223:8000' + item.uriavatar;
+        item.uriavatar = API_HOST + item.uriavatar;
       }
     });
     dispatch({type: Types.LOADUSERS, payload: result});

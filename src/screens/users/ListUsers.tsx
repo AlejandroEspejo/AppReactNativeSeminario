@@ -58,7 +58,7 @@ class ListUsers extends Component<MyProps, MyState> {
   }
   async componentDidMount() {
     /*console.log(this.context);
-    var result: Array<ItemUser> = await axios.get<ServerResponse>("http://192.168.100.223:8000/api/users").then((item) => {
+    var result: Array<ItemUser> = await axios.get<ServerResponse>(API_URL + "/users").then((item) => {
       return item.data.serverResponse
     });*/
     var {loadMainListUsers} = this.context;
