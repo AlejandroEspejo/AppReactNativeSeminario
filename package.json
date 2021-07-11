@@ -27,6 +27,7 @@
     "react-native-gesture-handler": "^1.10.3",
     "react-native-keyboard-aware-scroll-view": "^0.9.4",
     "react-native-maps": "^0.28.0",
+    "react-native-modal-datetime-picker": "^10.0.0",
     "react-native-paper": "^4.9.1",
     "react-native-paper-grid": "^0.1.12",
     "react-native-reanimated": "^2.2.0",

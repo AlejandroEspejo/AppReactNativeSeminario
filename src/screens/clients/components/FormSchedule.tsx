@@ -3,14 +3,13 @@ import {Text, StyleSheet, FlatList, View} from 'react-native';
 import {Searchbar, List, Button} from 'react-native-paper';
 import AppContext from '../../../context/AppContext';
 import {Col, Row, Grid} from 'react-native-paper-grid';
-import DateTimePicker from '@react-native-community/datetimepicker';
-// import MapView, {Marker} from 'react-native-maps';
 import SchedulesResource, {
   ISchedule,
 } from '../../../resources/SchedulesResource';
 import {NavigationContainer} from '@react-navigation/native';
 import ClientsResource, {IClient} from '../../../resources/ClientsResource';
 import {timeDiffCalc} from '../../../utils/DateTimeFunctions';
+import ModalDateTimePiker from './ModalDateTimePiker';
 
 interface Mystate {
   newSchedule: ISchedule;
@@ -63,8 +62,14 @@ class FormSchedule extends Component<MyProps, Mystate> {
       this.CR.list(
         {
           $or: [
-            {first_name: {$regex: '.*' + kw + '.*', $options: 'i'}},
-            {first_name: {$regex: '.*' + kw + '.*', $options: 'i'}},
+            {
+              first_name: {$regex: '.*' + kw + '.*', $options: 'i'},
+              regularclient: {$eq: false},
+            },
+            {
+              first_name: {$regex: '.*' + kw + '.*', $options: 'i'},
+              regularclient: {$eq: false},
+            },
           ],
         },
         {limit: 1},
@@ -213,8 +218,7 @@ class FormSchedule extends Component<MyProps, Mystate> {
             <Text>{`P. ${item.probability_client}%`}</Text>
             <Text>
               {this.state.scheduleForClientFind[0]
-                ? 'en ' +
-                  timeDiffCalc(
+                ? timeDiffCalc(
                     `${this.state.newSchedule.date}T${this.state.newSchedule.time}`,
                   )
                 : 'No tiene!'}
@@ -230,7 +234,7 @@ class FormSchedule extends Component<MyProps, Mystate> {
         title={`${sch.client.first_name} ${sch.client.last_name}   P. ${sch.client.probability_client}%`}
         right={() => (
           <React.Fragment>
-            <Text>{`en ${timeDiffCalc(`${sch.date}T${sch.time}:00`)}`}</Text>
+            <Text>{`${timeDiffCalc(`${sch.date}T${sch.time}:00`)}`}</Text>
           </React.Fragment>
         )}
       />
@@ -252,59 +256,6 @@ class FormSchedule extends Component<MyProps, Mystate> {
           {this.state.clientsFind.map((client: IClient) => {
             return this.clientsListItem(client);
           })}
-          {this.state.showModal && (
-            <DateTimePicker
-              value={
-                this.state.typeModal === 'date'
-                  ? this.state.newSchedule.date
-                    ? new Date(this.state.newSchedule.date)
-                    : new Date()
-                  : new Date(
-                      this.state.newSchedule.time
-                        ? this.state.newSchedule.time
-                        : new Date(),
-                    )
-              }
-              mode={this.state.typeModal}
-              is24Hour={true}
-              display="default"
-              onChange={(e: any, date: any) => {
-                if (this.state.typeModal === 'date') {
-                  this.setState({
-                    newSchedule: {
-                      ...this.state.newSchedule,
-                      date: `${date.getFullYear()}-${
-                        date.getMonth() + 1 < 10
-                          ? '0' + (date.getMonth() + 1)
-                          : date.getMonth() + 1
-                      }-${
-                        date.getDate() < 10
-                          ? '0' + date.getDate()
-                          : date.getDate()
-                      }`,
-                    },
-                    typeModal: 'time',
-                  });
-                } else {
-                  this.setState({
-                    newSchedule: {
-                      ...this.state.newSchedule,
-                      time: `${
-                        date.getHours() < 10
-                          ? '0' + date.getHours()
-                          : date.getHours()
-                      }:${
-                        date.getMinutes() < 10
-                          ? '0' + date.getMinutes()
-                          : date.getMinutes()
-                      }`,
-                    },
-                    showModal: false,
-                  });
-                }
-              }}
-            />
-          )}
           <Row style={styles.dateContent}>
             <Col size={80}>
               <Row>
@@ -326,15 +277,20 @@ class FormSchedule extends Component<MyProps, Mystate> {
             </Col>
             <Col size={20}>
               <View style={styles.containerMiddle}>
-                <Button
-                  mode="contained"
-                  onPress={() => {
+                <ModalDateTimePiker
+                  btnName="SET"
+                  dvDate={this.state.newSchedule.date}
+                  dvTime={this.state.newSchedule.time}
+                  onChange={(date: string, time: string) => {
                     this.setState({
-                      showModal: true,
+                      newSchedule: {
+                        ...this.state.newSchedule,
+                        date: date,
+                        time: time,
+                      },
                     });
-                  }}>
-                  SET
-                </Button>
+                  }}
+                />
               </View>
             </Col>
           </Row>

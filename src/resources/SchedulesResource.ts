@@ -8,6 +8,7 @@ export interface ISchedule {
   time: string;
   finished: boolean;
   reason?: string;
+  result?: boolean;
   registerdate?: Date;
   __v?: any;
 }
@@ -19,6 +20,7 @@ export interface INewSchedule {
   time: string;
   finished: boolean;
   reason?: string;
+  result?: boolean;
   registerdate?: Date;
 }
 
@@ -29,6 +31,7 @@ export interface IUpdateSchedule {
   time?: string;
   finished?: boolean;
   reason?: string;
+  result?: boolean;
   registerdate?: Date;
 }
 

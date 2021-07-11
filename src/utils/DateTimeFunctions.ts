@@ -2,6 +2,7 @@ export function timeDiffCalc(dateFuture: any, dateNow: any = new Date()) {
   if (typeof dateFuture === 'string') {
     dateFuture = new Date(Date.parse(dateFuture));
   }
+  var passDate: boolean = dateFuture - dateNow < 0 ? true : false;
   let diffInMilliSeconds: number = Math.abs(dateFuture - dateNow) / 1000;
 
   // calculate days
@@ -16,7 +17,7 @@ export function timeDiffCalc(dateFuture: any, dateNow: any = new Date()) {
   const minutes = Math.floor(diffInMilliSeconds / 60) % 60;
   diffInMilliSeconds -= minutes * 60;
 
-  let difference = '';
+  let difference = passDate ? 'Hace ' : 'Dentro de ';
   if (days > 0) {
     difference += days === 1 ? `${days} dia.` : `${days} dias.`;
     return difference;

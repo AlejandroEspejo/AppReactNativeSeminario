@@ -49,26 +49,6 @@ export default class DetailClient extends Component<IProps, IState> {
         });
     }
   }
-  onClicConvertToRegularClient() {
-    const CR = new ClientsResource(this.context.userAuth.token);
-    if (this.state.client) {
-      var newValue: boolean = !this.state.client.regularclient;
-      CR.update(this.state.client?._id, {
-        regularclient: newValue,
-      })
-        .then((client: IClient) => {
-          this.setState({
-            client: {
-              ...client,
-              regularclient: newValue,
-            },
-          });
-        })
-        .catch(err => {
-          console.log(err);
-        });
-    }
-  }
   render() {
     if (!this.state.client) {
       return <Text>{'No existe un cliente seleccionado'}</Text>;
@@ -173,22 +153,6 @@ export default class DetailClient extends Component<IProps, IState> {
                   </ScrollView>
                 </Col>
               </Row>
-              {!this.state.client.regularclient && (
-                <Row>
-                  <Col>
-                    <View style={styles.viewContainterCenter}>
-                      <Button
-                        icon="repeat"
-                        mode="contained"
-                        onPress={() => {
-                          this.onClicConvertToRegularClient();
-                        }}>
-                        CONVERTIR A CLIENTE REGULAR
-                      </Button>
-                    </View>
-                  </Col>
-                </Row>
-              )}
               <Row>
                 <Col>
                   <View style={styles.viewContainterCenter}>

@@ -7,6 +7,7 @@ import SchedulesResource, {
   ISchedule,
 } from '../../../resources/SchedulesResource';
 import {timeDiffCalc} from '../../../utils/DateTimeFunctions';
+import ClientsResource, {IClient} from '../../../resources/ClientsResource';
 interface IProps {
   onSelectOne(Schedule: ISchedule): void;
   onPressNewSchedule(): void;
@@ -15,15 +16,18 @@ interface IProps {
 interface IState {
   listSchedules: Array<ISchedule>;
   searchKeyWord: string;
+  clientIdsMatch: Array<string>;
 }
 export default class ListSchedules extends Component<IProps, IState> {
   static contextType = AppContext;
   SR: SchedulesResource | null = null;
+  CR: ClientsResource | undefined;
   constructor(props: IProps) {
     super(props);
     this.state = {
       listSchedules: [],
       searchKeyWord: '',
+      clientIdsMatch: [],
     };
     this.props.reloadList(() => {
       this.getList(this.state.searchKeyWord);
@@ -33,28 +37,47 @@ export default class ListSchedules extends Component<IProps, IState> {
   componentDidMount() {
     const {token} = this.context.userAuth;
     this.SR = new SchedulesResource(token);
+    this.CR = new ClientsResource(token);
     this.getList();
   }
-  getList = (kw?: string) => {
+  async findClients(kw: string) {
+    if (this.CR) {
+      return await this.CR.list({
+        $or: [
+          {
+            first_name: {$regex: '.*' + kw + '.*', $options: 'i'},
+            regularclient: {$eq: false},
+          },
+          {
+            first_name: {$regex: '.*' + kw + '.*', $options: 'i'},
+            regularclient: {$eq: false},
+          },
+        ],
+      })
+        .then((response: Array<IClient>) => {
+          this.setState({
+            clientIdsMatch: response.map(c => c._id),
+          });
+          return response.map(c => c._id);
+        })
+        .catch(err => {
+          console.log(err);
+          return false;
+        });
+    }
+    return false;
+  }
+  getList = async (kw?: string) => {
     var initialState: any = {
       listSchedules: [],
     };
     if (this.SR !== null) {
-      var queryObject: any = {};
+      var queryObject: any = {finished: {$eq: false}};
       if (kw) {
+        const clientIdsList = await this.findClients(kw);
         queryObject = {
-          $or: [
-            {
-              client: {
-                first_name: {$regex: '.*' + kw + '.*', $options: 'i'},
-              },
-            },
-            {
-              client: {
-                last_name: {$regex: '.*' + kw + '.*', $options: 'i'},
-              },
-            },
-          ],
+          finished: {$eq: false},
+          client_id: {$in: clientIdsList ? clientIdsList : []},
         };
       }
       this.SR.list(queryObject)
@@ -75,15 +98,13 @@ export default class ListSchedules extends Component<IProps, IState> {
     return (
       <View style={styles.itemStyle}>
         <List.Item
-          title={`${item.client.first_name} ${item.client.last_name}    P. ${item.client.probability_client}%`}
+          title={`${item.client.first_name} ${item.client.last_name}-P. ${item.client.probability_client}%`}
           onPress={() => {
             this.props.onSelectOne(item);
           }}
           right={() => (
             <React.Fragment>
-              <Text>{`Dentro de ${timeDiffCalc(
-                `${item.date}T${item.time}:00`,
-              )}`}</Text>
+              <Text>{`${timeDiffCalc(`${item.date}T${item.time}:00`)}`}</Text>
             </React.Fragment>
           )}
         />
