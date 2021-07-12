@@ -67,7 +67,7 @@ class FormSchedule extends Component<MyProps, Mystate> {
               regularclient: {$eq: false},
             },
             {
-              first_name: {$regex: '.*' + kw + '.*', $options: 'i'},
+              last_name: {$regex: '.*' + kw + '.*', $options: 'i'},
               regularclient: {$eq: false},
             },
           ],
