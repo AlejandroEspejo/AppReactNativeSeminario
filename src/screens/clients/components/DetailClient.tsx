@@ -6,22 +6,29 @@ import {Image, Text, View, StyleSheet, ScrollView, Linking} from 'react-native';
 import {API_HOST} from '../../../utils/config';
 import {Button, Switch} from 'react-native-paper';
 import AppContex from '../../../context/AppContext';
+import OrdersResource, {IOrder} from '../../../resources/OrdersResource';
+import SchedulesResource, {
+  ISchedule,
+} from '../../../resources/SchedulesResource';
+import {timeDiffCalc} from '../../../utils/DateTimeFunctions';
 
 export interface IProps {
   client?: IClient;
   onEdit(client: IClient): void;
-  ChildrenComponent(client: IClient): Element;
   notifyOnChangeClient(callback: Function): void;
 }
 
 export interface IState {
   client?: IClient;
+  listOrders: Array<IOrder>;
+  listSchedules: Array<ISchedule>;
 }
+
 export default class DetailClient extends Component<IProps, IState> {
   static contextType = AppContex;
   constructor(props: IProps) {
     super(props);
-    this.state = {client: props.client};
+    this.state = {client: props.client, listOrders: [], listSchedules: []};
     this.props.notifyOnChangeClient(this.changeStateClientValue);
   }
   changeStateClientValue = (client: IClient) => {
@@ -29,6 +36,57 @@ export default class DetailClient extends Component<IProps, IState> {
       client: client,
     });
   };
+  componentDidMount() {
+    if (this.props.client) {
+      const {token} = this.context.userAuth;
+      if (this.props.client.regularclient) {
+        const OR = new OrdersResource(token);
+        OR.list(
+          {
+            client_id: {
+              $eq: this.props.client._id,
+            },
+          },
+          {
+            sort: {
+              fecha_pedido: -1,
+            },
+            limit: 5,
+          },
+        )
+          .then(resp => {
+            this.setState({
+              listOrders: resp,
+            });
+          })
+          .catch(err => console.log(err));
+      } else {
+        const SR = new SchedulesResource(token);
+        SR.list(
+          {
+            client_id: {
+              $eq: this.props.client._id,
+            },
+            finished: {
+              $eq: false,
+            },
+          },
+          {
+            sort: {
+              registerdate: -1,
+            },
+            limit: 1,
+          },
+        )
+          .then(resp => {
+            this.setState({
+              listSchedules: resp,
+            });
+          })
+          .catch(err => console.log(err));
+      }
+    }
+  }
   onClicEnRuta() {
     const CR = new ClientsResource(this.context.userAuth.token);
     if (this.state.client) {
@@ -49,6 +107,49 @@ export default class DetailClient extends Component<IProps, IState> {
         });
     }
   }
+  renderComplementElement = () => {
+    if (this.props.client) {
+      if (this.props.client.regularclient) {
+        return (
+          <View>
+            <Text style={styles.txtStyles}>{'Ultimas ordenes:'}</Text>
+            {this.state.listOrders.map(e => {
+              return (
+                <Row key={e._id}>
+                  <Col>
+                    <Text>{'orden de entrega'}</Text>
+                  </Col>
+                  <Col>
+                    <View style={styles.viewContainerRight}>
+                      <Text>{timeDiffCalc(e.fecha_pedido)}</Text>
+                    </View>
+                  </Col>
+                </Row>
+              );
+            })}
+          </View>
+        );
+      } else {
+        return (
+          <View>
+            <Text style={styles.txtStyles}>
+              {'Agendas de negociacion para este usuario:'}
+            </Text>
+            {this.state.listSchedules.map(e => {
+              return (
+                <Row key={e._id}>
+                  <Col>
+                    <Text>{`Reunion agendada para el ${e.date} a las ${e.time}`}</Text>
+                  </Col>
+                </Row>
+              );
+            })}
+          </View>
+        );
+      }
+    }
+    return <Text>{'No Data'}</Text>;
+  };
   render() {
     if (!this.state.client) {
       return <Text>{'No existe un cliente seleccionado'}</Text>;
@@ -149,7 +250,7 @@ export default class DetailClient extends Component<IProps, IState> {
               <Row>
                 <Col>
                   <ScrollView style={styles.childContainerStyle}>
-                    {this.props.ChildrenComponent(this.state.client)}
+                    {this.renderComplementElement()}
                   </ScrollView>
                 </Col>
               </Row>

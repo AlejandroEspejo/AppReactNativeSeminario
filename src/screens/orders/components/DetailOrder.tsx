@@ -67,7 +67,7 @@ export default class DetailOrder extends Component<IProps, IState> {
         this.state.order.products.forEach(p => {
           PR.get(p._id)
             .then(pr => {
-              PR.update(p._id, {cantidad: pr.cantidad + p.cant_stock})
+              PR.update(p._id, {cantidad: pr.cantidad + p.cant_compra})
                 .then(r => r)
                 .catch(err => console.log(err));
             })
@@ -104,10 +104,14 @@ export default class DetailOrder extends Component<IProps, IState> {
                     value={this.state.order.estado_pago}
                     onValueChange={val => {
                       if (this.state.order) {
-                        this.setState({
-                          order: {...this.state.order, estado_pago: val},
-                        });
-                        this.saveOrder({estado_pago: val});
+                        this.setState(
+                          {
+                            order: {...this.state.order, estado_pago: val},
+                          },
+                          () => {
+                            this.saveOrder({estado_pago: val});
+                          },
+                        );
                       }
                     }}
                   />
@@ -130,7 +134,7 @@ export default class DetailOrder extends Component<IProps, IState> {
                 this.state.order.products &&
                 this.state.order.products.map(p => {
                   return (
-                    <Row>
+                    <Row key={p._id}>
                       <Col size={25}>
                         <Text>{p.nombre}</Text>
                       </Col>

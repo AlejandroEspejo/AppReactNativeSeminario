@@ -5,6 +5,7 @@ import {Divider, FAB, List, RadioButton, Searchbar} from 'react-native-paper';
 import AppContext from '../../../context/AppContext';
 import OrdersResource, {IOrder} from '../../../resources/OrdersResource';
 import {Col, Row, Grid} from 'react-native-paper-grid';
+import ClientsResource from '../../../resources/ClientsResource';
 
 interface IProps {
   onSelectOne(order: IOrder): void;
@@ -36,12 +37,47 @@ export default class ListOrders extends Component<IProps, IState> {
     this.OR = new OrdersResource(token);
     this.getList();
   }
-  getList = (kw?: string, typoOrder?: string | undefined) => {
+  getList = async (kw?: string, typoOrder?: string | undefined) => {
     if (this.OR !== null) {
       var queryObject: any = {};
+      if (kw) {
+        const res: Array<string> | false = await new ClientsResource(
+          this.context.userAuth.token,
+        )
+          .list({
+            $or: [
+              {
+                regularclient: {
+                  $eq: true,
+                },
+                first_name: {$regex: '.*' + kw + '.*', $options: 'i'},
+              },
+              {
+                regularclient: {
+                  $eq: true,
+                },
+                last_name: {$regex: '.*' + kw + '.*', $options: 'i'},
+              },
+            ],
+          })
+          .then(resp => resp.map(c => c._id))
+          .catch(err => {
+            console.log(err);
+            return false;
+          });
+        if (res) {
+          queryObject = {
+            ...queryObject,
+            client_id: {
+              $in: res,
+            },
+          };
+        }
+      }
       if (!typoOrder) {
         if (this.state.selectTypeOrder !== 'todos') {
           queryObject = {
+            ...queryObject,
             estado_pedido: {
               $eq: this.state.selectTypeOrder,
             },

@@ -59,22 +59,12 @@ export default class Orders extends Component<IProps, IState> {
     const navigation: StackNavigationProp<any, any> = props.navigation;
     return (
       <FormOrder
-        onSaveOrder={order => {
+        onSaveOrder={() => {
           if (this.state.loadList) {
             this.state.loadList();
           }
-          if (this.state.selectOrder) {
-            this.setState({
-              selectOrder: order,
-            });
-            this.onChangeDetailtOrderValue();
-          }
-          navigation.pop();
+          navigation.navigate('list');
         }}
-        values={this.state.selectOrder}
-        orderId={
-          this.state.selectOrder ? this.state.selectOrder._id : undefined
-        }
       />
     );
   };

@@ -42,7 +42,11 @@ class FormClient extends Component<MyProps, Mystate> {
   PR?: ProductsResource;
   constructor(props: MyProps) {
     super(props);
-    this.state = {
+    this.state = this.getInItValuesState(props);
+    this.OR = null;
+  }
+  getInItValuesState(props: MyProps) {
+    return {
       isload: false,
       newOrder: props.values
         ? props.values
@@ -54,11 +58,11 @@ class FormClient extends Component<MyProps, Mystate> {
             metodo_pago: 'Efectivo',
             estado_pedido: 'sin entrega',
             fecha_pedido: new Date(),
+            total_pedido: 0,
           },
       searchKW: '',
       showSendRecibo: false,
     };
-    this.OR = null;
   }
   componentDidMount() {
     const {token} = this.context.userAuth;
@@ -70,6 +74,7 @@ class FormClient extends Component<MyProps, Mystate> {
     if (this.checkData() && this.OR) {
       this.OR.store(this.state.newOrder)
         .then((response: IOrder) => {
+          this.setState(this.getInItValuesState(this.props));
           this.props.onSaveOrder(response);
         })
         .catch(err => {
@@ -119,6 +124,9 @@ class FormClient extends Component<MyProps, Mystate> {
   }
   crearPedido() {
     if (this.OR && this.state.selectClient) {
+      this.setState({
+        showSendRecibo: true,
+      });
       this.OR.store(this.state.newOrder)
         .then(resp => {
           this.setState({
@@ -141,9 +149,6 @@ class FormClient extends Component<MyProps, Mystate> {
         }
       });
     }
-    this.setState({
-      showSendRecibo: true,
-    });
   }
   render() {
     return (
@@ -251,45 +256,50 @@ class FormClient extends Component<MyProps, Mystate> {
             </Row>
 
             <View style={styles.containerTotal}>
-              {this.state.newOrder.total_pedido && (
-                <React.Fragment>
-                  <Text style={styles.txtStyles}>{'Valor'}</Text>
-                  <Row>
-                    <Col size={60}></Col>
-                    <Col size={40}>
-                      <Text style={styles.txtStyles}>
-                        {this.state.newOrder.total_pedido + ' bs.'}
-                      </Text>
-                    </Col>
-                  </Row>
-                  <Divider />
-                  <Row>
-                    <Col size={40}></Col>
-                    <Col size={60}>
-                      <Text style={styles.txtStyles}>
-                        {'valor Total ' +
-                          this.state.newOrder.total_pedido +
-                          ' bs.'}
-                      </Text>
-                    </Col>
-                  </Row>
-                </React.Fragment>
-              )}
+              {this.state.newOrder.total_pedido !== 0 &&
+                this.state.newOrder.total_pedido !== undefined && (
+                  <React.Fragment>
+                    <Text style={styles.txtStyles}>{'Valor'}</Text>
+                    <Row>
+                      <Col size={60}></Col>
+                      <Col size={40}>
+                        <Text style={styles.txtStyles}>
+                          {this.state.newOrder.total_pedido + ' bs.'}
+                        </Text>
+                      </Col>
+                    </Row>
+                    <Divider />
+                    <Row>
+                      <Col size={40}></Col>
+                      <Col size={60}>
+                        <Text style={styles.txtStyles}>
+                          {'valor Total ' +
+                            this.state.newOrder.total_pedido +
+                            ' bs.'}
+                        </Text>
+                      </Col>
+                    </Row>
+                  </React.Fragment>
+                )}
             </View>
             <Row>
               <Col>
                 <ModalSinPedido
                   client={this.state.selectClient}
                   onRegister={motivo => {
-                    this.setState({
-                      newOrder: {
-                        ...this.state.newOrder,
-                        motivo_no_pedido: motivo,
-                        estado_pedido: 'no pedido',
-                        products: [],
+                    this.setState(
+                      {
+                        newOrder: {
+                          ...this.state.newOrder,
+                          motivo_no_pedido: motivo,
+                          estado_pedido: 'no pedido',
+                          products: [],
+                        },
                       },
-                    });
-                    this.onPressSaveOrder();
+                      () => {
+                        this.onPressSaveOrder();
+                      },
+                    );
                   }}
                 />
               </Col>
@@ -304,45 +314,75 @@ class FormClient extends Component<MyProps, Mystate> {
               </Col>
             </Row>
           </Grid>
-        </ScrollView>
-        <Portal>
-          <Modal visible={this.state.showSendRecibo}>
-            {this.state.selectClient && this.state.newOrder.products && (
+          <Portal>
+            <Modal visible={this.state.showSendRecibo}>
               <View style={styles.sendReciboContainer}>
-                <Text>{'Generar Recibo'}</Text>
-                <Text>{`${this.state.selectClient.first_name} ${this.state.selectClient.last_name}`}</Text>
-                <View style={styles.containerCenter}>
-                  <Text>{this.state.newOrder.fecha_pedido?.toString()}</Text>
-                </View>
-                <Text>{'Detalle'}</Text>
                 <Grid>
-                  {this.state.newOrder.products.map(p => {
-                    return (
-                      <Row key={p._id}>
-                        <Col size={25}>
-                          <Text>{p.nombre}</Text>
-                        </Col>
-                        <Col size={15}>
-                          <Text>{p.cant_compra}</Text>
-                        </Col>
-                        <Col size={15}>
-                          <Text>{'x'}</Text>
-                        </Col>
-                        <Col size={15}>
-                          <Text>{p.precio}</Text>
-                        </Col>
-                        <Col size={15}>
-                          <Text>{'='}</Text>
-                        </Col>
-                        <Col size={15}>
-                          <Text>{`${p.cant_compra * p.precio}`}</Text>
-                        </Col>
-                      </Row>
-                    );
-                  })}
-                </Grid>
-                <Divider />
-                <Grid>
+                  <Row>
+                    <Col>
+                      <Text>{'Generar Recibo'}</Text>
+                    </Col>
+                  </Row>
+                  <Row>
+                    <Col>
+                      {this.state.selectClient && (
+                        <Text>{`${this.state.selectClient.first_name} ${this.state.selectClient.last_name}`}</Text>
+                      )}
+                    </Col>
+                  </Row>
+                  <Row>
+                    <Col>
+                      <View style={styles.containerCenter}>
+                        <Text>{`${
+                          this.state.newOrder.fecha_pedido
+                            ? this.state.newOrder.fecha_pedido.toString()
+                            : new Date().toString()
+                        }`}</Text>
+                      </View>
+                    </Col>
+                  </Row>
+                  <Row>
+                    <Col>
+                      <Text>{'Detalle'}</Text>
+                    </Col>
+                  </Row>
+                  {this.state.newOrder.products ? (
+                    this.state.newOrder.products.map(p => {
+                      return (
+                        <Row key={p._id}>
+                          <Col size={25}>
+                            <Text>{p.nombre}</Text>
+                          </Col>
+                          <Col size={15}>
+                            <Text>{p.cant_compra}</Text>
+                          </Col>
+                          <Col size={15}>
+                            <Text>{'x'}</Text>
+                          </Col>
+                          <Col size={15}>
+                            <Text>{p.precio}</Text>
+                          </Col>
+                          <Col size={15}>
+                            <Text>{'='}</Text>
+                          </Col>
+                          <Col size={15}>
+                            <Text>{`${p.cant_compra * p.precio}`}</Text>
+                          </Col>
+                        </Row>
+                      );
+                    })
+                  ) : (
+                    <Row>
+                      <Col>
+                        <Text>{'No selecciono ningun pedido'}</Text>
+                      </Col>
+                    </Row>
+                  )}
+                  <Row>
+                    <Col>
+                      <Divider />
+                    </Col>
+                  </Row>
                   <Row>
                     <Col>
                       <Text>{'Total'}</Text>
@@ -374,6 +414,12 @@ class FormClient extends Component<MyProps, Mystate> {
                           mode="contained"
                           onPress={() => {
                             if (this.state.responseOrder) {
+                              this.setState({
+                                showSendRecibo: false,
+                              });
+                              this.setState(
+                                this.getInItValuesState(this.props),
+                              );
                               this.props.onSaveOrder(this.state.responseOrder);
                             }
                           }}>
@@ -384,9 +430,9 @@ class FormClient extends Component<MyProps, Mystate> {
                   </Row>
                 </Grid>
               </View>
-            )}
-          </Modal>
-        </Portal>
+            </Modal>
+          </Portal>
+        </ScrollView>
       </NavigationContainer>
     );
   }
@@ -418,7 +464,6 @@ const styles = StyleSheet.create({
   },
   sendReciboContainer: {
     backgroundColor: '#ffffff',
-    borderRadius: 5,
     margin: 10,
     padding: 10,
   },

@@ -2,10 +2,7 @@ import React, {Component} from 'react';
 import {Image, StyleSheet, View} from 'react-native';
 import {FlatList} from 'react-native-gesture-handler';
 import {List, Searchbar} from 'react-native-paper';
-import ProductsResource, {
-  INewProduct,
-  IProduct,
-} from '../../../resources/ProductsResource';
+import ProductsResource, {IProduct} from '../../../resources/ProductsResource';
 import {API_HOST} from '../../../utils/config';
 import AppContext from '../../../context/AppContext';
 
@@ -60,7 +57,7 @@ export default class ListProducts extends Component<IProps, IState> {
         precio: 10,
         cantidad: 500,
         uri_photo: '/api/getproductphoto/60e72c32579050001a76537e',
-        path_photo: '/opt/app/productPhoto/cocacola3l.jpeg',
+        path_photo: '/opt/app/productPhoto/cocacola2l.jpeg',
       },
       {
         _id: '60e34c37659050001a76537e',
