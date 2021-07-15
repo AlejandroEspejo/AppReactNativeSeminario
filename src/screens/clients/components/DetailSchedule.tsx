@@ -70,6 +70,11 @@ export default class DetailSchedule extends Component<IProps, IState> {
         .then(resp => {
           console.log('meet schedule reprogramed', resp);
           if (this.state.schedule) {
+            if (this.state.schedule.result) {
+              this.changeClientFromPotentialToRegular();
+            }
+          }
+          if (this.state.schedule) {
             this.props.onEdit(this.state.schedule);
           }
         })

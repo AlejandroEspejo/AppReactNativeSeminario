@@ -80,7 +80,10 @@ export default class BusinessSchedule extends Component<any, IState> {
         onEdit={(schedule: ISchedule) => {
           //to edit schedule
           this.onselectSchedule(schedule);
-          navigation.navigate('CreateSchedule');
+          if (this.state.loadList) {
+            this.state.loadList();
+          }
+          navigation.navigate('list');
         }}
         notifyOnChangeSchedule={callback => {
           this.changeState({onChangeDetailScheduleValue: callback});
